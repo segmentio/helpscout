@@ -1,7 +1,7 @@
 
 # helpscout
 
-  Helpscout API for node.
+  A Helpscout API for node.
 
 ## Installation
 
@@ -41,11 +41,11 @@ mailbox.conversations.list(function (err, conversations) {
 
 #### new Helpscout(apiKey)
 
-    Create a new `Helpscout` client to query `Mailboxes`.
+Create a new `Helpscout` client to query `Mailboxes`.
 
 #### #list([options,] callback)
 
-    Returns a [list of mailboxes](http://developer.helpscout.net/help-desk-api/mailboxes/list/), with options defaulted to:
+Returns a [list of mailboxes](http://developer.helpscout.net/help-desk-api/mailboxes/list/), with options defaulted to:
 
 ```js
 {
@@ -55,7 +55,7 @@ mailbox.conversations.list(function (err, conversations) {
 
 #### new Helpscout(apiKey, mailboxId)
 
-    Create a new `Mailbox` client.
+Create a new `Mailbox` client.
 
 ##### #conversations.list([options,] callback)
 
