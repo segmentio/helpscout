@@ -80,4 +80,20 @@ describe('helpscout', function () {
       });
     });
   });
+
+  describe('#attachments', function () {
+    describe('#create', function () {
+      it('should be able to create an attachment', function (done) {
+        var helpscout = Helpscout(apiKey);
+        helpscout.attachments.create({
+          fileName: 'test.txt',
+          data: 'dGVzdA=='
+        }, function (err, res) {
+          if (err) return done(err);
+          assert(res);
+          done();
+        });
+      });
+    });
+  });
 });
