@@ -44,5 +44,56 @@ describe('helpscout', function () {
         });
       });
     });
+
+    describe('#create', function () {
+      it('should be able to create a conversation', function (done) {
+        var mailbox = Helpscout(apiKey, mailboxId);
+        mailbox.conversations.create({
+          "type": "email",
+          "customer": {
+            "email": "customer@example.com",
+            "firstName": "Joey",
+            "lastName": "Customer",
+            "type": "customer"
+          },
+          "subject": "Help!",
+          "tags": [
+            "Bug Fix"
+          ],
+          "threads": [
+            {
+              "type": "customer",
+              "createdBy": {
+                "email": "customer@example.com",
+                "firstName": "Joey",
+                "lastName": "Customer",
+                "type": "customer"
+              },
+              "body": "I broke everything."
+            }
+          ]
+        }, function (err, res) {
+          if (err) return done(err);
+          assert(res);
+          done();
+        });
+      });
+    });
+  });
+
+  describe('#attachments', function () {
+    describe('#create', function () {
+      it('should be able to create an attachment', function (done) {
+        var helpscout = Helpscout(apiKey);
+        helpscout.attachments.create({
+          fileName: 'test.txt',
+          data: 'dGVzdA=='
+        }, function (err, res) {
+          if (err) return done(err);
+          assert(res);
+          done();
+        });
+      });
+    });
   });
 });
