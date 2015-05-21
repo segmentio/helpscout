@@ -97,7 +97,7 @@ describe('helpscout', function () {
     });
   });
 
-  describe.only('#thread', function() {
+  describe('#thread', function() {
     describe('#create', function() {
       it('should be able to create a thread', function(done) {
         var mailbox = Helpscout(apiKey, mailboxId);
