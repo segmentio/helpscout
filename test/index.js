@@ -96,4 +96,56 @@ describe('helpscout', function () {
       });
     });
   });
+
+  describe.only('#thread', function() {
+    describe('#create', function() {
+      it('should be able to create a thread', function(done) {
+        var mailbox = Helpscout(apiKey, mailboxId);
+        mailbox.conversations.create({
+          "reload": true,
+          "type": "chat",
+          "customer": {
+            "email": "jane.customer@example.com",
+            "firstName": "Jane",
+            "lastName": "Customer",
+            "type": "customer"
+          },
+          "subject": "ok",
+          "tags": [
+            "Help Request"
+          ],
+          "threads": [
+            {
+              "type": "customer",
+              "createdBy": {
+                "email": "jane.customer@example.com",
+                "type": "customer"
+              },
+              "body": "I need some help."
+            }
+          ]
+        }, function(err, res) {
+          if (err) return done(err);
+          var helpscout = Helpscout(apiKey);
+          helpscout.threads.create({
+            "id": res.item.id,
+            "thread": {
+              "createdBy": {
+                "email": "jane.customer@example.com",
+                "type": "customer"
+              },
+              "type": "customer",
+              "body": "Oops, nevermind. Code 18!",
+              "status": "active"
+            }
+          }, function(err, res) {
+            if (err) return done(err);
+            assert(res);
+            done();
+          });
+        });
+      });
+    });
+  });
+
 });
