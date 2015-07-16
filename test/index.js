@@ -5,8 +5,8 @@ var util = require('util');
 
 describe('helpscout', function () {
 
-  var apiKey = 'b7fb92dc098366785915041b9e5bfb3e3313f004';
-  var mailboxId = '49256';
+  var apiKey = 'verySecretKey';
+  var mailboxId = '12345';
 
   describe('#hooks', function() {
     describe('#create', function() {
