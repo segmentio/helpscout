@@ -4,11 +4,40 @@ var Helpscout = require('..');
 
 describe('helpscout', function() {
 
-    var config = {
-        apiKey: 'verySecretKey',
-        defaultRetryDelay: 0.001,
-        mailboxId: '12345'
-    };
+    var config;
+    var testConversation;
+
+    beforeEach(function() {
+        config = {
+            apiKey: 'yourSecretKey',
+            defaultRetryDelay: 0.001,
+            mailboxId: 'yourMailboxId'
+        };
+
+        testConversation = {
+            "type": "email",
+            "customer": {
+                "email": "customer@example.com",
+                "firstName": "Joey",
+                "lastName": "Customer",
+                "type": "customer"
+            },
+            "subject": "Help!",
+            "tags": [
+                "Bug Fix"
+            ],
+            "threads": [{
+                "type": "customer",
+                "createdBy": {
+                    "email": "customer@example.com",
+                    "firstName": "Joey",
+                    "lastName": "Customer",
+                    "type": "customer"
+                },
+                "body": "I broke everything."
+            }]
+        };
+    });
 
     describe('#hooks', function() {
         describe('#create', function() {
@@ -47,33 +76,12 @@ describe('helpscout', function() {
 
         describe('#getByEmail', function() {
             it('should return an array containing a customer with matching email address', function(done) {
-                var email = "test" + Date.now() + "@example.com";
                 var helpscout = Helpscout(config);
-                helpscout.conversations.create({
-                    "type": "email",
-                    "customer": {
-                        "email": email,
-                        "firstName": "Joey",
-                        "lastName": "Customer",
-                        "type": "customer"
-                    },
-                    "subject": "Help!",
-                    "tags": [
-                        "Bug Fix"
-                    ],
-                    "threads": [
-                        {
-                            "type": "customer",
-                            "createdBy": {
-                                "email": email,
-                                "firstName": "Joey",
-                                "lastName": "Customer",
-                                "type": "customer"
-                            },
-                            "body": "I broke everything."
-                        }
-                    ]
-                }, function(err, res) {
+                var email = "test" + Date.now() + "@example.com";
+                testConversation.customer.email = email;
+                testConversation.threads[0].createdBy.email = email;
+                helpscout.conversations.create(testConversation, function(err, res) {
+
                     // This test is prone to race conditions.
                     // It takes time for Help Scout to index the user by email address.
                     // For some reason implicit creation of a user through a conversation
@@ -111,7 +119,7 @@ describe('helpscout', function() {
         describe('#list', function() {
             it('should be able to get a list of mailboxes', function(done) {
                 var helpscout = Helpscout(config);
-                helpscout.mailboxes.list(function(err, res) {
+                helpscout.mailboxes.list(null, function(err, res) {
                     if (err) return done(err);
                     assert(res);
                     assert(Array.isArray(res.items));
@@ -124,8 +132,8 @@ describe('helpscout', function() {
     describe('#conversations', function() {
         describe('#list', function() {
             it('should be able to get a list of conversations', function(done) {
-                var mailbox = Helpscout(config);
-                mailbox.conversations.list(function(err, res) {
+                var helpscout = Helpscout(config);
+                helpscout.conversations.list(null, function(err, res) {
                     if (err) return done(err);
                     assert(res);
                     assert(Array.isArray(res.items));
@@ -134,8 +142,8 @@ describe('helpscout', function() {
             });
 
             it('should be able to get a list of active conversations', function(done) {
-                var mailbox = Helpscout(config);
-                mailbox.conversations.list({
+                var helpscout = Helpscout(config);
+                helpscout.conversations.list({
                     status: 'active'
                 }, function(err, res) {
                     if (err) return done(err);
@@ -148,32 +156,8 @@ describe('helpscout', function() {
 
         describe('#create', function() {
             it('should be able to create a conversation', function(done) {
-                var mailbox = Helpscout(config);
-                mailbox.conversations.create({
-                    "type": "email",
-                    "customer": {
-                        "email": "customer@example.com",
-                        "firstName": "Joey",
-                        "lastName": "Customer",
-                        "type": "customer"
-                    },
-                    "subject": "Help!",
-                    "tags": [
-                        "Bug Fix"
-                    ],
-                    "threads": [
-                        {
-                            "type": "customer",
-                            "createdBy": {
-                                "email": "customer@example.com",
-                                "firstName": "Joey",
-                                "lastName": "Customer",
-                                "type": "customer"
-                            },
-                            "body": "I broke everything."
-                        }
-                    ]
-                }, function(err, res) {
+                var helpscout = Helpscout(config);
+                helpscout.conversations.create(testConversation, function(err, res) {
                     if (err) return done(err);
                     assert(res);
                     done();
@@ -203,37 +187,17 @@ describe('helpscout', function() {
             it('should be able to create a thread', function(done) {
 
                 var helpscout = Helpscout(config);
-                helpscout.conversations.create({
-                    "reload": true,
-                    "type": "chat",
-                    "customer": {
-                        "email": "jane.customer@example.com",
-                        "firstName": "Jane",
-                        "lastName": "Customer",
-                        "type": "customer"
-                    },
-                    "subject": "ok",
-                    "tags": [
-                        "Help Request"
-                    ],
-                    "threads": [
-                        {
-                            "type": "customer",
-                            "createdBy": {
-                                "email": "jane.customer@example.com",
-                                "type": "customer"
-                            },
-                            "body": "I need some help."
-                        }
-                    ]
-                }, function(err, res) {
+                testConversation.reload = true;
+                testConversation.type = 'chat';
+
+                helpscout.conversations.create(testConversation, function(err, res) {
                     if (err) return done(err);
                     var helpscout = Helpscout(config);
                     helpscout.threads.create({
                         "id": res.item.id,
                         "thread": {
                             "createdBy": {
-                                "email": "jane.customer@example.com",
+                                "email": "customer@example.com",
                                 "type": "customer"
                             },
                             "type": "customer",
@@ -250,4 +214,36 @@ describe('helpscout', function() {
         });
     });
 
+    describe('#request', function() {
+        it('should delay exponentially on retry', function(done) {
+            config.defaultRetryDelay = 0.1;
+            config.maxRetries = 2;
+            config.apiRoot = 'http://thisdomainmostdefinitelydoesnotexist.tv/';
+            var helpscout = Helpscout(config);
+
+            var startTime = new Date().getTime();
+            helpscout.request({
+                path: '/users.json',
+                callback: function(err, res) {
+                    var endTime = new Date().getTime();
+                    assert((endTime - startTime) > 300);
+                    done();
+                }
+            });
+        });
+
+        it('should append global query string', function(done) {
+            config.query = {
+                page: 2
+            };
+            var helpscout = Helpscout(config);
+
+            helpscout.conversations.list({
+                query: {}
+            }, function(err, res) {
+                assert(res.page === 2);
+                done();
+            });
+        });
+    });
 });
