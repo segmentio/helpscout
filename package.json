@@ -10,7 +10,7 @@
     "API"
   ],
   "dependencies": {
-    "superagent": "~0.16.0",
+    "superagent": "~1.2.0",
     "debug": "~0.7.4",
     "defaults": "~1.0.0"
   },
