@@ -12,27 +12,26 @@
 Create a new Helpscout instance and query for mailboxes: 
 
 ```js
-var helpscout = require('helpscout')('apikey');
-```
-
-And query mailboxes:
-
-```
-helpscout.mailboxes.list(function (err, mailboxes) {
-  // ..
+var helpscout = require('helpscout')({
+	apiKey: 'apikey'
 });
 ```
 
-Or select a mailbox:
+
+
+Or select a default mailbox:
 
 ```js
-var mailbox = require('helpscout')('apikey', 6314);
+var helpscout = require('helpscout')({
+	apiKey: 'apikey', 
+	mailboxId: 6314
+});
 ```
 
 Then you can query mailbox conversations:
 
 ```js
-mailbox.conversations.list(function (err, conversations) {
+helpscout.conversations.list(options, function (err, conversations) {
   // ..
 });
 ```

@@ -9,9 +9,9 @@ describe('helpscout', function() {
 
     beforeEach(function() {
         config = {
-            apiKey: 'yourSecretKey',
+            apiKey: 'mySecretKey',
             defaultRetryDelay: 0.001,
-            mailboxId: 'yourMailboxId'
+            mailboxId: 'myMailboxId'
         };
 
         testConversation = {
@@ -119,7 +119,7 @@ describe('helpscout', function() {
         describe('#list', function() {
             it('should be able to get a list of mailboxes', function(done) {
                 var helpscout = Helpscout(config);
-                helpscout.mailboxes.list(null, function(err, res) {
+                helpscout.mailboxes.list(function(err, res) {
                     if (err) return done(err);
                     assert(res);
                     assert(Array.isArray(res.items));
@@ -133,7 +133,7 @@ describe('helpscout', function() {
         describe('#list', function() {
             it('should be able to get a list of conversations', function(done) {
                 var helpscout = Helpscout(config);
-                helpscout.conversations.list(null, function(err, res) {
+                helpscout.conversations.list(function(err, res) {
                     if (err) return done(err);
                     assert(res);
                     assert(Array.isArray(res.items));
