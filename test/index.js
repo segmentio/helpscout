@@ -6,7 +6,7 @@ describe('helpscout', function() {
 
     var config = {
         apiKey: 'verySecretKey',
-        maxRetries: 0,
+        defaultRetryDelay: 0.001,
         mailboxId: '12345'
     };
 
@@ -45,7 +45,7 @@ describe('helpscout', function() {
         });
 
 
-        describe('#getCustomerByEmail', function() {
+        describe('#getByEmail', function() {
             it('should return an array containing a customer with matching email address', function(done) {
                 var email = "test" + Date.now() + "@example.com";
                 var helpscout = Helpscout(config);
@@ -80,7 +80,7 @@ describe('helpscout', function() {
                     // allows for faster indexing than explicitly creating a user.
                     // hence the conversation posting; and 1 sec timeout, below.
                     setTimeout(function() {
-                        helpscout.customers.getCustomerByEmail(email, function(err, res) {
+                        helpscout.customers.getByEmail(email, function(err, res) {
                             if (err) return done(err);
                             assert(res);
                             assert(Array.isArray(res.items));
