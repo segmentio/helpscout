@@ -217,7 +217,6 @@ describe('helpscout', function() {
     describe('#request', function() {
         it('should delay exponentially on retry', function(done) {
             config.defaultRetryDelay = 0.1;
-            config.maxRetries = 2;
             config.apiRoot = 'http://thisdomainmostdefinitelydoesnotexist.tv/';
             var helpscout = Helpscout(config);
 
@@ -226,7 +225,7 @@ describe('helpscout', function() {
                 path: '/users.json',
                 callback: function(err, res) {
                     var endTime = new Date().getTime();
-                    assert((endTime - startTime) > 300);
+                    assert((endTime - startTime) > 630);
                     done();
                 }
             });
