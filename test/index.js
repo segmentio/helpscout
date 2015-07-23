@@ -14,6 +14,7 @@ describe('helpscout', function() {
     var sendSpy;
     var endStub;
     var querySpy;
+    var timeoutSpy;
     var config;
 
     beforeEach(function() {
@@ -26,6 +27,7 @@ describe('helpscout', function() {
         postSpy = sinon.spy(superagent, 'post');
         querySpy = sinon.spy(superagent.Request.prototype, 'query');
         sendSpy = sinon.spy(superagent.Request.prototype, 'send');
+        timeoutSpy = sinon.spy(superagent.Request.prototype, 'timeout');
         endStub = sinon.stub(superagent.Request.prototype, 'end', function(callback) {
             this._callback = function() {};
             callback(null, {
@@ -40,6 +42,7 @@ describe('helpscout', function() {
         sendSpy.restore();
         endStub.restore();
         querySpy.restore();
+        timeoutSpy.restore();
     });
 
     it('should fail if no apiKey is provided', function() {
@@ -76,6 +79,15 @@ describe('helpscout', function() {
             Helpscout(config).users.getMe(function() {
                 getSpy.should.have.been.calledOnce;
                 getSpy.should.have.been.calledWith('https://api.helpscout.net/v3/users/me.json');
+                done();
+            });
+        });
+
+        it('should use configured timeout', function(done) {
+            config.timeout = 10000;
+            Helpscout(config).users.getMe(function() {
+                timeoutSpy.should.have.been.calledOnce;
+                chai.assert(timeoutSpy.args[0][0] === 10000);
                 done();
             });
         });
@@ -166,13 +178,46 @@ describe('helpscout', function() {
 
             it('should add mimeType', function(done) {
                 Helpscout(config).attachments.create({
-                    fileName: 'test.txt',
-                    data: 'dGVzdA=='
+                    attachment: {
+                        fileName: 'test.txt',
+                        data: 'dGVzdA=='
+                    }
                 }, function() {
                     postSpy.should.have.been.calledOnce;
                     postSpy.should.have.been.calledWith('https://api.helpscout.net/v1/attachments.json');
                     sendSpy.should.have.been.calledOnce;
                     chai.assert(sendSpy.args[0][0].mimeType === "text/plain");
+                    done();
+                });
+            });
+
+            it('should default to no timeout', function(done) {
+                Helpscout(config).attachments.create({
+                    attachment: {
+                        fileName: 'test.txt',
+                        data: 'dGVzdA=='
+                    }
+                }, function() {
+                    postSpy.should.have.been.calledOnce;
+                    postSpy.should.have.been.calledWith('https://api.helpscout.net/v1/attachments.json');
+                    timeoutSpy.should.have.been.calledOnce;
+                    chai.assert(timeoutSpy.args[0][0] === 0);
+                    done();
+                });
+            });
+
+            it('should allow timeout override', function(done) {
+                Helpscout(config).attachments.create({
+                    timeout: 20000,
+                    attachment: {
+                        fileName: 'test.txt',
+                        data: 'dGVzdA=='
+                    }
+                }, function() {
+                    postSpy.should.have.been.calledOnce;
+                    postSpy.should.have.been.calledWith('https://api.helpscout.net/v1/attachments.json');
+                    timeoutSpy.should.have.been.calledOnce;
+                    chai.assert(timeoutSpy.args[0][0] === 20000);
                     done();
                 });
             });
