@@ -1,5 +1,5 @@
 
-# helpscout
+# Helpscout
 
   A Helpscout API for node.
 
@@ -9,65 +9,66 @@
 
 ## Example
 
-Create a new Helpscout instance and query for mailboxes: 
+Create a new Helpscout instance with config object and fetch the user: 
 
 ```js
-var helpscout = require('helpscout')('apikey');
-```
+var helpscout = require('helpscout')({
+	apiKey: 'apikey'
+});
 
-And query mailboxes:
-
-```
-helpscout.mailboxes.list(function (err, mailboxes) {
-  // ..
+helpscout.users.getMe(function(user){
+	// Done!
 });
 ```
 
-Or select a mailbox:
+## Config Object
+- **apiKey** (Required) Api key to access helpscout
+- **mailboxId** (Optional) default mailbox id to use when listing conversations or creating a conversation
+- **maxRetries** (Optional) Number of times to retry in case of failure. Defaults to 3
+- **timeout** (Optional) Request timeout in ms. Defaults to 0 (no timeout)
+- **defaultRetryDelay** (Optional) Number of seconds to wait before retrying. Defaults to 1. After each retry the wait time is doubled.
+- **apiVersion** (Optional) Api version to access. Defaults to 'v1'
+- **apiRoot** (Optional) Change the endpoint. Can be useful for testing. Defaults to https://api.helpscout.net/
+- **query** (Optional) Default query string to attach to each request
+- **retryList** (Optional) Default list of error codes to retry on. Defaults to [429,500,503]
 
-```js
-var mailbox = require('helpscout')('apikey', 6314);
-```
+## Instance Methods
 
-Then you can query mailbox conversations:
+    helpscout.attachments.create(options, callback)
 
-```js
-mailbox.conversations.list(function (err, conversations) {
-  // ..
-});
-```
+Will create an attachment. Options object can contain timeout and attachment attributes
 
-## API
+	helpscout.conversations.list([options,] callback)
 
-#### new Helpscout(apiKey)
+Will list conversations on a mailbox. Options can specify mailboxId and query attributes. Query will default to `{ status: 'all', page: 1, tag: null }` and mailboxId will default to instance config.
 
-Create a new `Helpscout` client to query `Mailboxes`.
+	helpscout.conversations.create(conversation, callback)
 
-#### #list([options,] callback)
+Will create a conversation. conversation mailbox attribute will default to global mailboxId.
 
-Returns a [list of mailboxes](http://developer.helpscout.net/help-desk-api/mailboxes/list/), with options defaulted to:
+	helpscout.customers.getByEmail(email, callback)
 
-```js
-{
-    page: 1
-}
-```
+Will fetch a custom by email.
 
-#### new Helpscout(apiKey, mailboxId)
+	helpscout.customers.create(customer, callback)
 
-Create a new `Mailbox` client.
+Will create a customer specified in the customer object.
 
-##### #conversations.list([options,] callback)
+	helpscout.hooks.create(hook, callback)
 
-Returns a [list of conversations](http://developer.helpscout.net/help-desk-api/conversations/list/), with options defaulted to:
+Will create a hook specified in the hook object.
 
-```js
-{
-    page: 1,
-    status: 'all'
-    tag: null
-}
-```
+	helpscout.mailboxes.list([options,] callback)
+
+Will list all the mailboxes. Options are query params to send. Options defaults to { page: 1 } 
+
+	helpscout.threads.create(options, callback)
+
+Will create a new thread. Options expects an id attribute of the conversation to create a thread on and a thread attribute which is thread object to create
+
+	helpscout.users.getMe(callback)
+
+Will fetch the user.
 
 ## License
 

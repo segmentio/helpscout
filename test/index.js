@@ -1,248 +1,390 @@
-
-var assert = require('assert');
 var Helpscout = require('..');
-var util = require('util');
-
-describe('helpscout', function () {
-
-  var apiKey = 'verySecretKey';
-  var mailboxId = '12345';
-
-  describe('#hooks', function() {
-    describe('#create', function() {
-      it('should return an empty object', function(done) {
-        var helpscout = Helpscout(apiKey);
-        helpscout.hooks.create({
-          "url": "https://example.com/helpscout",
-          "events": [],
-          "secret": "mZ9XbGHodX"
-        }, function(err, res) {
-          assert(err === null);
-          assert(res);
-          done();
-        });
-      });
-    });
-  });
-
-  describe('#customers', function() {
-    describe('#create', function() {
-      it('should return a newly created customer', function(done) {
-        var helpscout = Helpscout(apiKey);
-        helpscout.customers.create({ 
-          "reload": true,
-          "firstName": "The Red Masque",
-          "lastName": "of Death"
-        }, function(err, res) {
-            if (err) return done(err);
-            assert(res.item.id);
-            done();
-        });
-      });
-    });
+var superagent = require('superagent');
+var sinon = require('sinon');
+var chai = require('chai');
+chai.should();
+chai.use(require('sinon-chai'));
 
 
-    describe('#getCustomerByEmail', function() {
-      it('should return an array containing a customer with matching email address', function(done) {
-        var email = "test" + Date.now() + "@example.com";
-        var helpscout = Helpscout(apiKey);
-        var mailbox = Helpscout(apiKey, mailboxId);
-        mailbox.conversations.create({
-          "type": "email",
-          "customer": {
-            "email": email,
-            "firstName": "Joey",
-            "lastName": "Customer",
-            "type": "customer"
-          },
-          "subject": "Help!",
-          "tags": [
-            "Bug Fix"
-          ],
-          "threads": [
-            {
-              "type": "customer",
-              "createdBy": {
-                "email": email,
-                "firstName": "Joey",
-                "lastName": "Customer",
-                "type": "customer"
-              },
-              "body": "I broke everything."
-            }
-          ]
-        }, function(err, res) {
-          // This test is prone to race conditions.
-          // It takes time for Help Scout to index the user by email address.
-          // For some reason implicit creation of a user through a conversation
-          // allows for faster indexing than explicitly creating a user.
-          // hence the conversation posting; and 1 sec timeout, below.
-          setTimeout(function() {
-            helpscout.customers.getCustomerByEmail(email, function(err, res) {
-              if (err) return done(err);
-              assert(res);
-              assert(Array.isArray(res.items));
-              assert(res.items[0].firstName === 'Joey');
-              done();
+describe('helpscout', function() {
+
+    var getSpy;
+    var postSpy;
+    var sendSpy;
+    var endStub;
+    var querySpy;
+    var timeoutSpy;
+    var config;
+
+    beforeEach(function() {
+        config = {
+            apiKey: 'mySecretKey',
+            mailboxId: 'myMailboxId'
+        };
+
+        getSpy = sinon.spy(superagent, 'get');
+        postSpy = sinon.spy(superagent, 'post');
+        querySpy = sinon.spy(superagent.Request.prototype, 'query');
+        sendSpy = sinon.spy(superagent.Request.prototype, 'send');
+        timeoutSpy = sinon.spy(superagent.Request.prototype, 'timeout');
+        endStub = sinon.stub(superagent.Request.prototype, 'end', function(callback) {
+            this._callback = function() {};
+            callback(null, {
+                success: 'true'
             });
-          }, 1000);
         });
-      });
-    });
-  });
-
-  describe('#users', function() {
-    describe('#me', function() {
-      it('should return the authorizing user', function(done) {
-        var helpscout = Helpscout(apiKey);
-        helpscout.users.getMe(function (err, res) {
-          if (err) return done(err);
-          assert(res);
-          assert(res.item.id);
-          done();
-        });
-      });
-    });
-  });
-
-  describe('#mailboxes', function () {
-    describe('#list', function () {
-      it('should be able to get a list of mailboxes', function (done) {
-        var helpscout = Helpscout(apiKey);
-        helpscout.mailboxes.list(function (err, res) {
-          if (err) return done(err);
-          assert(res);
-          assert(Array.isArray(res.items));
-          done();
-        });
-      });
-    });
-  });
-
-  describe('#conversations', function () {
-    describe('#list', function () {
-      it('should be able to get a list of conversations', function (done) {
-        var mailbox = Helpscout(apiKey, mailboxId);
-        mailbox.conversations.list(function (err, res) {
-          if (err) return done(err);
-          assert(res);
-          assert(Array.isArray(res.items));
-          done();
-        });
-      });
-
-      it('should be able to get a list of active conversations', function (done) {
-        var mailbox = Helpscout(apiKey, mailboxId);
-        mailbox.conversations.list({ status: 'active' }, function (err, res) {
-          if (err) return done(err);
-          assert(res);
-          assert(Array.isArray(res.items));
-          done();
-        });
-      });
     });
 
-    describe('#create', function () {
-      it('should be able to create a conversation', function (done) {
-        var mailbox = Helpscout(apiKey, mailboxId);
-        mailbox.conversations.create({
-          "type": "email",
-          "customer": {
-            "email": "customer@example.com",
-            "firstName": "Joey",
-            "lastName": "Customer",
-            "type": "customer"
-          },
-          "subject": "Help!",
-          "tags": [
-            "Bug Fix"
-          ],
-          "threads": [
-            {
-              "type": "customer",
-              "createdBy": {
-                "email": "customer@example.com",
-                "firstName": "Joey",
-                "lastName": "Customer",
-                "type": "customer"
-              },
-              "body": "I broke everything."
-            }
-          ]
-        }, function (err, res) {
-          if (err) return done(err);
-          assert(res);
-          done();
-        });
-      });
+    afterEach(function() {
+        getSpy.restore();
+        postSpy.restore();
+        sendSpy.restore();
+        endStub.restore();
+        querySpy.restore();
+        timeoutSpy.restore();
     });
-  });
 
-  describe('#attachments', function () {
-    describe('#create', function () {
-      it('should be able to create an attachment', function (done) {
-        var helpscout = Helpscout(apiKey);
-        helpscout.attachments.create({
-          fileName: 'test.txt',
-          data: 'dGVzdA=='
-        }, function (err, res) {
-          if (err) return done(err);
-          assert(res);
-          done();
-        });
-      });
+    it('should fail if no apiKey is provided', function() {
+        try {
+            Helpscout({});
+        } catch ( e ) {
+            chai.assert(e.message === "Helpscout requires an apiKey.");
+        }
     });
-  });
 
-  describe('#thread', function() {
-    describe('#create', function() {
-      it('should be able to create a thread', function(done) {
-        var mailbox = Helpscout(apiKey, mailboxId);
-        mailbox.conversations.create({
-          "reload": true,
-          "type": "chat",
-          "customer": {
-            "email": "jane.customer@example.com",
-            "firstName": "Jane",
-            "lastName": "Customer",
-            "type": "customer"
-          },
-          "subject": "ok",
-          "tags": [
-            "Help Request"
-          ],
-          "threads": [
-            {
-              "type": "customer",
-              "createdBy": {
-                "email": "jane.customer@example.com",
-                "type": "customer"
-              },
-              "body": "I need some help."
-            }
-          ]
-        }, function(err, res) {
-          if (err) return done(err);
-          var helpscout = Helpscout(apiKey);
-          helpscout.threads.create({
-            "id": res.item.id,
-            "thread": {
-              "createdBy": {
-                "email": "jane.customer@example.com",
-                "type": "customer"
-              },
-              "type": "customer",
-              "body": "Oops, nevermind. Code 18!",
-              "status": "active"
-            }
-          }, function(err, res) {
-            if (err) return done(err);
-            assert(res);
-            done();
-          });
-        });
-      });
+    it('should create instance without new keyword', function() {
+        var helpscout = Helpscout(config);
+        chai.assert(helpscout instanceof Helpscout);
     });
-  });
 
+    it('should create instance with new keyword', function() {
+        var helpscout = new Helpscout(config);
+        chai.assert(helpscout instanceof Helpscout);
+    });
+
+    describe('request', function() {
+
+        it('should use configured apiRoot', function(done) {
+            config.apiRoot = 'http://new.api.com/';
+            Helpscout(config).users.getMe(function() {
+                getSpy.should.have.been.calledOnce;
+                getSpy.should.have.been.calledWith('http://new.api.com/v1/users/me.json');
+                done();
+            });
+        });
+
+        it('should use configured apiVersion', function(done) {
+            config.apiVersion = 'v3';
+            Helpscout(config).users.getMe(function() {
+                getSpy.should.have.been.calledOnce;
+                getSpy.should.have.been.calledWith('https://api.helpscout.net/v3/users/me.json');
+                done();
+            });
+        });
+
+        it('should use configured timeout', function(done) {
+            config.timeout = 10000;
+            Helpscout(config).users.getMe(function() {
+                timeoutSpy.should.have.been.calledOnce;
+                chai.assert(timeoutSpy.args[0][0] === 10000);
+                done();
+            });
+        });
+
+        it('should provide default callback if none provided', function() {
+            Helpscout(config).users.getMe();
+            getSpy.should.have.been.calledOnce;
+            getSpy.should.have.been.calledWith('https://api.helpscout.net/v1/users/me.json');
+        });
+
+        it('should retry on 429 error', function(done) {
+            config.defaultRetryDelay = 0.01;
+            config.maxRetries = 2;
+            endStub.restore();
+            endStub = sinon.stub(superagent.Request.prototype, 'end', function(callback) {
+                this._callback = function() {};
+                callback({
+                    status: 429
+                });
+            });
+
+            Helpscout(config).users.getMe(function(err, res) {
+                getSpy.should.have.been.calledThrice;
+                done();
+            });
+        });
+
+        it('should not retry on 401 error', function(done) {
+            config.defaultRetryDelay = 0.01;
+            config.maxRetries = 2;
+            endStub.restore();
+            endStub = sinon.stub(superagent.Request.prototype, 'end', function(callback) {
+                this._callback = function() {};
+                callback({
+                    status: 401
+                });
+            });
+
+            Helpscout(config).users.getMe(function(err, res) {
+                getSpy.should.have.been.calledOnce;
+                done();
+            });
+        });
+
+        it('should retry on timeouts', function(done) {
+            config.defaultRetryDelay = 0.01;
+            config.maxRetries = 2;
+            endStub.restore();
+            endStub = sinon.stub(superagent.Request.prototype, 'end', function(callback) {
+                this._callback = function() {};
+                callback({});
+            });
+
+            Helpscout(config).users.getMe(function(err, res) {
+                getSpy.should.have.been.calledThrice;
+                done();
+            });
+        });
+
+        it('should respect retry-after header', function(done) {
+            config.defaultRetryDelay = 0.01;
+            config.maxRetries = 1;
+            endStub.restore();
+            endStub = sinon.stub(superagent.Request.prototype, 'end', function(callback) {
+                this._callback = function() {};
+                callback({
+                    status: 500
+                }, {
+                    header: {
+                        'retry-after': 1
+                    }
+                });
+            });
+
+            var startTime = new Date().getTime();
+            Helpscout(config).users.getMe(function(err, res) {
+                var endTime = new Date().getTime();
+                getSpy.should.have.been.calledTwice;
+                chai.assert(endTime - startTime > 1000);
+                done();
+            });
+        });
+    });
+
+    describe('attachments', function() {
+
+        describe('create', function() {
+
+            it('should add mimeType', function(done) {
+                Helpscout(config).attachments.create({
+                    attachment: {
+                        fileName: 'test.txt',
+                        data: 'dGVzdA=='
+                    }
+                }, function() {
+                    postSpy.should.have.been.calledOnce;
+                    postSpy.should.have.been.calledWith('https://api.helpscout.net/v1/attachments.json');
+                    sendSpy.should.have.been.calledOnce;
+                    chai.assert(sendSpy.args[0][0].mimeType === "text/plain");
+                    done();
+                });
+            });
+
+            it('should default to no timeout', function(done) {
+                Helpscout(config).attachments.create({
+                    attachment: {
+                        fileName: 'test.txt',
+                        data: 'dGVzdA=='
+                    }
+                }, function() {
+                    postSpy.should.have.been.calledOnce;
+                    postSpy.should.have.been.calledWith('https://api.helpscout.net/v1/attachments.json');
+                    timeoutSpy.should.have.been.calledOnce;
+                    chai.assert(timeoutSpy.args[0][0] === 0);
+                    done();
+                });
+            });
+
+            it('should allow timeout override', function(done) {
+                Helpscout(config).attachments.create({
+                    timeout: 20000,
+                    attachment: {
+                        fileName: 'test.txt',
+                        data: 'dGVzdA=='
+                    }
+                }, function() {
+                    postSpy.should.have.been.calledOnce;
+                    postSpy.should.have.been.calledWith('https://api.helpscout.net/v1/attachments.json');
+                    timeoutSpy.should.have.been.calledOnce;
+                    chai.assert(timeoutSpy.args[0][0] === 20000);
+                    done();
+                });
+            });
+        });
+    });
+
+    describe('conversations', function() {
+
+        describe('list', function() {
+
+            it('should add default query params', function(done) {
+                Helpscout(config).conversations.list(function() {
+                    getSpy.should.have.been.calledOnce;
+                    getSpy.should.have.been.calledWith('https://api.helpscout.net/v1/mailboxes/myMailboxId/conversations.json');
+                    querySpy.should.have.been.calledThrice;
+                    chai.assert(querySpy.args[2][0].status === 'all');
+                    chai.assert(querySpy.args[2][0].page === 1);
+                    chai.assert(querySpy.args[2][0].tag === null);
+                    done();
+                });
+            });
+
+            it('should allow custom mailbox param', function(done) {
+                Helpscout(config).conversations.list({
+                    mailboxId: 'customMail'
+                }, function() {
+                    getSpy.should.have.been.calledOnce;
+                    getSpy.should.have.been.calledWith('https://api.helpscout.net/v1/mailboxes/customMail/conversations.json');
+                    querySpy.should.have.been.calledThrice;
+                    chai.assert(querySpy.args[2][0].status === 'all');
+                    chai.assert(querySpy.args[2][0].page === 1);
+                    chai.assert(querySpy.args[2][0].tag === null);
+                    done();
+                });
+            });
+        });
+
+        describe('create', function() {
+
+            it('should add default mailboxId', function(done) {
+                Helpscout(config).conversations.create({}, function() {
+                    postSpy.should.have.been.calledOnce;
+                    postSpy.should.have.been.calledWith('https://api.helpscout.net/v1/conversations.json');
+                    sendSpy.should.have.been.calledOnce;
+                    sendSpy.should.have.been.calledWith({
+                        mailbox: {
+                            id: 'myMailboxId'
+                        }
+                    });
+                    done();
+                });
+            });
+        });
+    });
+
+    describe('customers', function() {
+
+        describe('getByEmail', function() {
+
+            it('should call endpoint with email', function(done) {
+                Helpscout(config).customers.getByEmail('test@email.com', function() {
+                    getSpy.should.have.been.calledOnce;
+                    getSpy.should.have.been.calledWith('https://api.helpscout.net/v1/customers.json');
+                    querySpy.should.have.been.calledThrice;
+                    chai.assert(querySpy.args[2][0].email === 'test@email.com');
+                    done();
+                });
+            });
+        });
+
+        describe('create', function() {
+
+            it('should post profile', function(done) {
+                Helpscout(config).customers.create('profile', function() {
+                    postSpy.should.have.been.calledOnce;
+                    postSpy.should.have.been.calledWith('https://api.helpscout.net/v1/customers.json');
+                    sendSpy.should.have.been.calledOnce;
+                    chai.assert(sendSpy.args[0][0] === 'profile');
+                    done();
+                });
+            });
+        });
+    });
+
+    describe('hooks', function() {
+
+        describe('create', function() {
+
+            it('should post hook', function(done) {
+                Helpscout(config).hooks.create('hook', function() {
+                    postSpy.should.have.been.calledOnce;
+                    postSpy.should.have.been.calledWith('https://api.helpscout.net/v1/hooks.json');
+                    sendSpy.should.have.been.calledOnce;
+                    chai.assert(sendSpy.args[0][0] === 'hook');
+                    done();
+                });
+            });
+        });
+    });
+
+    describe('mailboxes', function() {
+
+        describe('list', function() {
+
+            it('should provide default query params', function(done) {
+                Helpscout(config).mailboxes.list(function() {
+                    getSpy.should.have.been.calledOnce;
+                    getSpy.should.have.been.calledWith('https://api.helpscout.net/v1/mailboxes.json');
+                    querySpy.should.have.been.calledThrice;
+                    chai.assert(querySpy.args[2][0].page === 1);
+                    done();
+                });
+            });
+
+            it('should accept optional query params', function(done) {
+                Helpscout(config).mailboxes.list({
+                    page: 2
+                }, function() {
+                    getSpy.should.have.been.calledOnce;
+                    getSpy.should.have.been.calledWith('https://api.helpscout.net/v1/mailboxes.json');
+                    querySpy.should.have.been.calledThrice;
+                    chai.assert(querySpy.args[2][0].page === 2);
+                    done();
+                });
+            });
+        });
+    });
+
+    describe('threads', function() {
+
+        describe('create', function() {
+
+            it('should call endpoint with default options', function(done) {
+                Helpscout(config).threads.create({}, function() {
+                    postSpy.should.have.been.calledOnce;
+                    postSpy.should.have.been.calledWith('https://api.helpscout.net/v1/conversations/.json');
+                    sendSpy.should.have.been.calledOnce;
+                    chai.assert(typeof sendSpy.args[0][0] === 'object');
+                    done();
+                });
+            });
+
+            it('should call endpoint with options specified', function(done) {
+                Helpscout(config).threads.create({
+                    id: 'test',
+                    thread: 'thread'
+                }, function() {
+                    postSpy.should.have.been.calledOnce;
+                    postSpy.should.have.been.calledWith('https://api.helpscout.net/v1/conversations/test.json');
+                    sendSpy.should.have.been.calledOnce;
+                    chai.assert(sendSpy.args[0][0] === 'thread');
+                    done();
+                });
+            });
+        });
+    });
+
+    describe('users', function() {
+
+        describe('getMe', function() {
+
+            it('should call me endpoint', function(done) {
+                Helpscout(config).users.getMe(function() {
+                    getSpy.should.have.been.calledOnce;
+                    getSpy.should.have.been.calledWith('https://api.helpscout.net/v1/users/me.json');
+                    done();
+                });
+            });
+        });
+    });
 });
