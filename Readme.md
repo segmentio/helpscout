@@ -25,6 +25,7 @@ helpscout.users.getMe(function(user){
 - **apiKey** (Required) Api key to access helpscout
 - **mailboxId** (Optional) default mailbox id to use when listing conversations or creating a conversation
 - **maxRetries** (Optional) Number of times to retry in case of failure. Defaults to 3
+- **timeout** (Optional) Request timeout in ms. Defaults to 0 (no timeout)
 - **defaultRetryDelay** (Optional) Number of seconds to wait before retrying. Defaults to 1. After each retry the wait time is doubled.
 - **apiVersion** (Optional) Api version to access. Defaults to 'v1'
 - **apiRoot** (Optional) Change the endpoint. Can be useful for testing. Defaults to https://api.helpscout.net/
