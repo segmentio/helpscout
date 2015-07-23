@@ -1,6 +1,5 @@
 var Helpscout = require('..');
 var superagent = require('superagent');
-var EventEmitter = require('events').EventEmitter;
 var sinon = require('sinon');
 var chai = require('chai');
 chai.should();
@@ -350,17 +349,17 @@ describe('helpscout', function() {
 
         describe('create', function() {
 
-            it('should call endpoint with null reqObj', function(done) {
-                Helpscout(config).threads.create(null, function() {
+            it('should call endpoint with default options', function(done) {
+                Helpscout(config).threads.create({}, function() {
                     postSpy.should.have.been.calledOnce;
-                    postSpy.should.have.been.calledWith('https://api.helpscout.net/v1/conversations/null.json');
+                    postSpy.should.have.been.calledWith('https://api.helpscout.net/v1/conversations/.json');
                     sendSpy.should.have.been.calledOnce;
-                    chai.assert(sendSpy.args[0][0] === null);
+                    chai.assert(typeof sendSpy.args[0][0] === 'object');
                     done();
                 });
             });
 
-            it('should call endpoint with reqObj', function(done) {
+            it('should call endpoint with options specified', function(done) {
                 Helpscout(config).threads.create({
                     id: 'test',
                     thread: 'thread'

@@ -1,5 +1,5 @@
 
-# helpscout
+# Helpscout
 
   A Helpscout API for node.
 
@@ -9,64 +9,31 @@
 
 ## Example
 
-Create a new Helpscout instance and query for mailboxes: 
+Create a new Helpscout instance with config object and fetch the user: 
 
 ```js
 var helpscout = require('helpscout')({
 	apiKey: 'apikey'
 });
-```
 
-
-
-Or select a default mailbox:
-
-```js
-var helpscout = require('helpscout')({
-	apiKey: 'apikey', 
-	mailboxId: 6314
+helpscout.users.getMe(function(user){
+	// Done!
 });
 ```
 
-Then you can query mailbox conversations:
+## Config Object
+- **apiKey** (Required) Api key to access helpscout
+- **mailboxId** (Optional) default mailbox id to use when listing conversations or creating a conversation
+- **maxRetries** (Optional) Number of times to retry in case of failure. Defaults to 3
+- **defaultRetryDelay** (Optional) Number of seconds to wait before retrying. Defaults to 1. After each retry the wait time is doubled.
+- **apiVersion** (Optional) Api version to access. Defaults to 'v1'
+- **apiRoot** (Optional) Change the endpoint. Can be useful for testing. Defaults to https://api.helpscout.net/
+- *query* (Optional) Default query string to attach to each request
+- *retryList* (Optional) Default list of error codes to retry on. Defaults to [429,500,503]
 
-```js
-helpscout.conversations.list(options, function (err, conversations) {
-  // ..
-});
-```
+## Instance Methods
 
-## API
-
-#### new Helpscout(apiKey)
-
-Create a new `Helpscout` client to query `Mailboxes`.
-
-#### #list([options,] callback)
-
-Returns a [list of mailboxes](http://developer.helpscout.net/help-desk-api/mailboxes/list/), with options defaulted to:
-
-```js
-{
-    page: 1
-}
-```
-
-#### new Helpscout(apiKey, mailboxId)
-
-Create a new `Mailbox` client.
-
-##### #conversations.list([options,] callback)
-
-Returns a [list of conversations](http://developer.helpscout.net/help-desk-api/conversations/list/), with options defaulted to:
-
-```js
-{
-    page: 1,
-    status: 'all'
-    tag: null
-}
-```
+helpscout.
 
 ## License
 
