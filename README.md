@@ -13,11 +13,11 @@ Create a new Helpscout instance with config object and fetch the user:
 
 ```js
 var helpscout = require('helpscout')({
-	apiKey: 'apikey'
+    apiKey: 'apikey'
 });
 
 helpscout.users.getMe(function(user){
-	// Done!
+    // Done!
 });
 ```
 
@@ -34,39 +34,39 @@ helpscout.users.getMe(function(user){
 
 ## Instance Methods
 
-    helpscout.attachments.create(options, callback)
+### helpscout.attachments.create(options, callback)
 
 Will create an attachment. Options object can contain timeout and attachment attributes
 
-	helpscout.conversations.list([options,] callback)
+### helpscout.conversations.list([options,] callback)
 
 Will list conversations on a mailbox. Options can specify mailboxId and query attributes. Query will default to `{ status: 'all', page: 1, tag: null }` and mailboxId will default to instance config.
 
-	helpscout.conversations.create(conversation, callback)
+### helpscout.conversations.create(conversation, callback)
 
 Will create a conversation. conversation mailbox attribute will default to global mailboxId.
 
-	helpscout.customers.getByEmail(email, callback)
+### helpscout.customers.getByEmail(email, callback)
 
 Will fetch a custom by email.
 
-	helpscout.customers.create(customer, callback)
+### helpscout.customers.create(customer, callback)
 
 Will create a customer specified in the customer object.
 
-	helpscout.hooks.create(hook, callback)
+### helpscout.hooks.create(hook, callback)
 
 Will create a hook specified in the hook object.
 
-	helpscout.mailboxes.list([options,] callback)
+### helpscout.mailboxes.list([options,] callback)
 
 Will list all the mailboxes. Options are query params to send. Options defaults to { page: 1 } 
 
-	helpscout.threads.create(options, callback)
+### helpscout.threads.create(options, callback)
 
 Will create a new thread. Options expects an id attribute of the conversation to create a thread on and a thread attribute which is thread object to create
 
-	helpscout.users.getMe(callback)
+### helpscout.users.getMe(callback)
 
 Will fetch the user.
 
