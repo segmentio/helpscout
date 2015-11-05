@@ -228,9 +228,10 @@ describe('helpscout', function() {
         describe('list', function() {
 
             it('should add default query params', function(done) {
+                var url = 'https://api.helpscout.net/v1/mailboxes/' + config.mailboxId + '/conversations.json';
                 Helpscout(config).conversations.list(function() {
                     getSpy.should.have.been.calledOnce;
-                    getSpy.should.have.been.calledWith('https://api.helpscout.net/v1/mailboxes/myMailboxId/conversations.json');
+                    getSpy.should.have.been.calledWith(url);
                     querySpy.should.have.been.calledThrice;
                     chai.assert(querySpy.args[2][0].status === 'all');
                     chai.assert(querySpy.args[2][0].page === 1);
@@ -240,11 +241,12 @@ describe('helpscout', function() {
             });
 
             it('should allow custom mailbox param', function(done) {
+                var url = 'https://api.helpscout.net/v1/mailboxes/' + config.mailboxId + '/conversations.json';
                 Helpscout(config).conversations.list({
-                    mailboxId: 'customMail'
+                    mailboxId: config.mailboxId
                 }, function() {
                     getSpy.should.have.been.calledOnce;
-                    getSpy.should.have.been.calledWith('https://api.helpscout.net/v1/mailboxes/customMail/conversations.json');
+                    getSpy.should.have.been.calledWith(url);
                     querySpy.should.have.been.calledThrice;
                     chai.assert(querySpy.args[2][0].status === 'all');
                     chai.assert(querySpy.args[2][0].page === 1);
@@ -263,7 +265,7 @@ describe('helpscout', function() {
                     sendSpy.should.have.been.calledOnce;
                     sendSpy.should.have.been.calledWith({
                         mailbox: {
-                            id: 'myMailboxId'
+                            id: config.mailboxId
                         }
                     });
                     done();
