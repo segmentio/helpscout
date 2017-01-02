@@ -10,6 +10,7 @@ describe('helpscout', function() {
 
     var getSpy;
     var postSpy;
+    var putSpy;
     var sendSpy;
     var endStub;
     var querySpy;
@@ -24,6 +25,7 @@ describe('helpscout', function() {
 
         getSpy = sinon.spy(superagent, 'get');
         postSpy = sinon.spy(superagent, 'post');
+        putSpy = sinon.spy(superagent, 'put');
         querySpy = sinon.spy(superagent.Request.prototype, 'query');
         sendSpy = sinon.spy(superagent.Request.prototype, 'send');
         timeoutSpy = sinon.spy(superagent.Request.prototype, 'timeout');
@@ -38,6 +40,7 @@ describe('helpscout', function() {
     afterEach(function() {
         getSpy.restore();
         postSpy.restore();
+        putSpy.restore();
         sendSpy.restore();
         endStub.restore();
         querySpy.restore();
@@ -295,6 +298,19 @@ describe('helpscout', function() {
                 Helpscout(config).customers.create('profile', function() {
                     postSpy.should.have.been.calledOnce;
                     postSpy.should.have.been.calledWith('https://api.helpscout.net/v1/customers.json');
+                    sendSpy.should.have.been.calledOnce;
+                    chai.assert(sendSpy.args[0][0] === 'profile');
+                    done();
+                });
+            });
+        });
+
+        describe('update', function() {
+
+            it('should update profile', function(done) {
+                Helpscout(config).customers.update('12345', 'profile', function() {
+                    putSpy.should.have.been.calledOnce;
+                    putSpy.should.have.been.calledWith('https://api.helpscout.net/v1/customers/12345.json');
                     sendSpy.should.have.been.calledOnce;
                     chai.assert(sendSpy.args[0][0] === 'profile');
                     done();
