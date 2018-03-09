@@ -1,8 +1,11 @@
 {
   "name": "helpscout",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "main": "./lib",
-  "repository": "git://github.com/segmentio/helpscout.git",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/segmentio/helpscout.git"
+  },
   "license": "MIT",
   "description": "Helpscout API for node",
   "keywords": [
@@ -16,5 +19,17 @@
   },
   "devDependencies": {
     "mocha": "~1.17.1"
-  }
+  },
+  "bugs": {
+    "url": "https://github.com/segmentio/helpscout/issues"
+  },
+  "homepage": "https://github.com/segmentio/helpscout#readme",
+  "directories": {
+    "lib": "lib",
+    "test": "test"
+  },
+  "scripts": {
+    "test": "mocha"
+  },
+  "author": ""
 }
