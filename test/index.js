@@ -2,11 +2,12 @@
 var assert = require('assert');
 var Helpscout = require('..');
 var util = require('util');
+var config = require('../config.json')
 
 describe('helpscout', function () {
 
-  var apiKey = 'helpscout-api-key';
-  var mailboxId = 'mailbox-id';
+  var apiKey = config.key || 'helpscout-api-key';
+  var mailboxId = config.mailboxId || 'mailbox-id';
 
   describe('#mailboxes', function () {
     describe('#list', function () {

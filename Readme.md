@@ -9,7 +9,7 @@
 
 ## Example
 
-Create a new Helpscout instance and query for mailboxes: 
+Create a new Helpscout instance and query for mailboxes:
 
 ```js
 var helpscout = require('helpscout')('apikey');
@@ -68,6 +68,12 @@ Returns a [list of conversations](http://developer.helpscout.net/help-desk-api/c
     tag: null
 }
 ```
+
+## Testing
+
+To run tests, have Mocha installed, and run `npm test`.
+
+Requires having a config file as `config.json` with a helpscout API `key` and a helpscout `mailboxId`. You can use the config.json.sample as a template.
 
 ## License
 
